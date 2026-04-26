@@ -227,7 +227,7 @@ To <dfn for="file system locator" id=locator-resolve>resolve</dfn> a
 
   1. Let |relativePath| be « ».
   1. [=list/For each=] |index| of [=the range=] from |rootPath|'s [=list/size=]
-     to |rootPath|'s [=list/size=], exclusive,
+     to |childPath|'s [=list/size=], exclusive,
      [=list/append=] |childPath|.\[[|index|]] to |relativePath|.
 
   1. [=/Resolve=] |result| with |relativePath|.
@@ -255,7 +255,7 @@ A <dfn export>file system root</dfn> is an opaque [=string=] whose value is
 [=implementation-defined=].
 
 <p class=example id=example-locator>For a [=/file system locator=] |locator|
-whichs [=locate an entry|locates to=] a [=file entry=] |entry| that conceptually
+whose [=locate an entry|locates to=] a [=file entry=] |entry| that conceptually
 exists at the path `data/drafts/example.txt` relative to the root directory of
 a [=/bucket file system=],
 |locator|'s [=file system locator/kind=] has to be "{{FileSystemHandleKind/file}}",
@@ -770,11 +770,11 @@ and its async iterator |iterator|:
     1. If |accessResult|'s [=file system access result/permission state=]
        is not "{{PermissionState/granted}}", [=/reject=] |promise| with a
        {{DOMException}} of |accessResult|'s
-       [=file system access result/error name=] and abort these steps.:
+       [=file system access result/error name=] and abort these steps.
 
-    1. If |directory| is `null`, [=/reject=] |result| with a
+    1. If |directory| is `null`, [=/reject=] |promise| with a
        "{{NotFoundError}}" {{DOMException}} and abort these steps.
-      1. [=Assert=]: |directory| is a [=directory entry=].
+    1. [=Assert=]: |directory| is a [=directory entry=].
 
     1. Let |child| be a [=/file system entry=] in
        |directory|'s [=directory entry/children=], such that
@@ -1340,7 +1340,7 @@ runs these steps:
   : await |stream| . {{FileSystemWritableFileStream/write()|write}}({
       {{WriteParams/type}}: "{{WriteCommandType/seek}}",
       {{WriteParams/position}}: |position| })
-  :: Updates the current file cursor offset the |position| bytes from the top of the file.
+  :: Updates the current file cursor offset to the |position| bytes from the top of the file.
 
   : await |stream| . {{FileSystemWritableFileStream/write()|write}}({
       {{WriteParams/type}}: "{{WriteCommandType/truncate}}",
@@ -1352,7 +1352,7 @@ runs these steps:
      If the cursor is smaller than |size|, it remains unchanged. If the cursor is larger than
      |size|, it is set to |size| to ensure that subsequent writes do not error.
 
-     No changes are written to the actual file until on disk until the stream has been closed.
+     No changes are written to the actual file on disk until the stream has been closed.
      Changes are typically written to a temporary file instead.
 </div>
 
@@ -1371,7 +1371,7 @@ The <dfn method for=FileSystemWritableFileStream>write(|data|)</dfn> method step
 
 <div class="note domintro">
   : await |stream| . {{FileSystemWritableFileStream/seek()|seek}}(|position|)
-  :: Updates the current file cursor offset the |position| bytes from the top of the file.
+  :: Updates the current file cursor offset to the |position| bytes from the top of the file.
 </div>
 
 <div algorithm>
@@ -1397,7 +1397,7 @@ The <dfn method for=FileSystemWritableFileStream>seek(|position|)</dfn> method s
      If the cursor is smaller than |size|, it remains unchanged. If the cursor is larger than
      |size|, it is set to |size| to ensure that subsequent writes do not error.
 
-     No changes are written to the actual file until on disk until the stream has been closed.
+     No changes are written to the actual file on disk until the stream has been closed.
      Changes are typically written to a temporary file instead.
 </div>
 
@@ -1589,7 +1589,7 @@ The <dfn method for=FileSystemSyncAccessHandle>truncate(|newSize|)</dfn> method 
 1. If |newSize| is larger than |oldSize|:
    1. If |newSize| &minus; |oldSize| exceeds the available [=storage quota=],
       [=throw=] a {{QuotaExceededError}}.
-   1. Set [=this=]'s [=FileSystemSyncAccessHandle/[[file]]=]'s to a
+   1. Set [=this=]'s [=FileSystemSyncAccessHandle/[[file]]=]'s [=file entry/binary data=] to a
       [=byte sequence=] formed by concatenating |fileContents| with a
       [=byte sequence=] containing |newSize| &minus; |oldSize| 0x00 bytes.
    1. If the operations modifying the [=this=]'s
@@ -1597,7 +1597,7 @@ The <dfn method for=FileSystemSyncAccessHandle>truncate(|newSize|)</dfn> method 
       in the previous steps failed,
       [=throw=] an "{{InvalidStateError}}" {{DOMException}}.
 1. Otherwise, if |newSize| is smaller than |oldSize|:
-   1. Set [=this=]'s [=FileSystemSyncAccessHandle/[[file]]=]'s to a
+   1. Set [=this=]'s [=FileSystemSyncAccessHandle/[[file]]=]'s [=file entry/binary data=] to a
       [=byte sequence=] containing the first |newSize| bytes in |fileContents|.
    1. If the operations modifying the [=this=]'s
       [=FileSystemSyncAccessHandle/[[file]]=]'s [=file entry/binary data=]
@@ -1660,7 +1660,7 @@ The <dfn method for=FileSystemSyncAccessHandle>close()</dfn> method steps are:
 
 1. If [=this=]'s [=[[state]]=] is "`closed`", return.
 1. Set [=this=]'s [=[[state]]=] to "`closed`".
-1. Set |lockReleased| to false.
+1. Let |lockReleased| be false.
 1. Let |file| be [=this=]'s [=FileSystemSyncAccessHandle/[[file]]=].
 1. [=Enqueue the following steps=] to the [=file system queue=]:
   1. [=file entry/lock/release|Release the lock=] on |file|.
