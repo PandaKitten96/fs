@@ -21,8 +21,10 @@ jobs:
       with:
         python-version: "3.14"
     - run: pip install bikeshed && bikeshed update
-    # Note: `make deploy` will do a deploy dry run on PRs.
-    - run: make deploy
+    - if: github.event_name == 'pull_request'
+      run: make deploy
+    - if: github.event_name != 'pull_request'
+      run: make deploy
       env:
         SERVER: ${{ secrets.MARQUEE_SERVER }}
         SERVER_PUBLIC_KEY: ${{ secrets.MARQUEE_PUBLIC_KEY }}
